@@ -4,6 +4,7 @@ const themeButton = document.getElementById("theme-button");
 const bodyTag = document.querySelector("body");
 const previous = document.getElementById("previous");
 const next = document.getElementById("next");
+let language = "pli-eng";
 
 homeButton.addEventListener("click", () => {
   document.location.search = "";
@@ -75,7 +76,7 @@ function buildSutta(slug) {
     }
   }
 
-  let html = `<div class="button-area"><button id="hide-pali" class="hide-button">Toggle Pali</button></div>`;
+  let html = `<div class="button-area"><button id="language-button" class="hide-button">Toggle Pali</button></div>`;
 
   const contentResponse = fetch(`https://suttacentral.net/api/bilarasuttas/${slug}/${translator}?lang=en`).then(
     response => response.json()
@@ -145,7 +146,15 @@ function buildSutta(slug) {
 
 // initialize the whole app
 if (document.location.search) {
-  buildSutta(document.location.search.replace("?q=", "").replace(/\s/g, "").replace(/%20/g, ""));
+  let params = new URLSearchParams(document.location.search);
+  let slug = params.get("q");
+  let lang = params.get("lang");
+  buildSutta(slug);
+  if (lang) {
+    language = lang;
+    console.log("in the initializing" + lang);
+    setLanguage(lang);
+  }
 } else {
   suttaArea.innerHTML = `<div class="instructions">
   <p>Citations must exactly match those found on SuttaCentral.net. Separate chapter and sutta with a period. The following collections work. Click them to add to input box.</p>
@@ -206,25 +215,43 @@ if (document.location.search) {
 `;
 }
 
-function toggleThePali() {
-  const hideButton = document.getElementById("hide-pali");
-
-  // initial state
-  if (localStorage.paliToggle) {
-    if (localStorage.paliToggle === "hide") {
-      suttaArea.classList.add("hide-pali");
-    }
-  } else {
-    localStorage.paliToggle = "show";
+function setLanguage(language) {
+  if (language === "pli-eng") {
+    showPaliEnglish();
+  } else if (language === "eng") {
+    showEnglish();
+  } else if (language === "pli") {
+    showPali();
   }
+}
 
-  hideButton.addEventListener("click", () => {
-    if (localStorage.paliToggle === "show") {
-      suttaArea.classList.add("hide-pali");
-      localStorage.paliToggle = "hide";
-    } else {
-      suttaArea.classList.remove("hide-pali");
-      localStorage.paliToggle = "show";
+function showPaliEnglish() {
+  suttaArea.classList.remove("hide-pali");
+  suttaArea.classList.remove("hide-english");
+}
+function showEnglish() {
+  suttaArea.classList.add("hide-pali");
+  suttaArea.classList.remove("hide-english");
+}
+function showPali() {
+  console.log("showing pali");
+  suttaArea.classList.remove("hide-pali");
+  suttaArea.classList.add("hide-english");
+}
+
+function toggleThePali() {
+  const languageButton = document.getElementById("language-button");
+
+  languageButton.addEventListener("click", () => {
+    if (language === "pli-eng") {
+      showEnglish();
+      language = "eng";
+    } else if (language === "eng") {
+      showPali();
+      language = "pli";
+    } else if (language === "pli") {
+      showPaliEnglish();
+      language = "pli-eng";
     }
   });
 }
